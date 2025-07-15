@@ -59,20 +59,21 @@ UNIT=\$(echo "\$TX_LINE" | awk '{print \$6}')
 if [[ "\$UNIT" == "GiB" ]]; then TX=\$(echo "\$TX_RAW * 1024" | bc); else TX=\$TX_RAW; fi
 
 WARN_FILE="/tmp/urnode_warn_sent"
-if (( \$(echo "\$TX > \$CAP" | bc -l) )); then
-  echo "\$(date): TX \$TX MiB exceeded cap. Shutting down." | tee -a \$LOGFILE
-  curl -s -X POST -H "Content-Type: application/json" -d '{"content":"🚨 URnetwork node #'$NODE_ID' shut down: egress limit reached."}' "\$WEBHOOK_URL"
+if (( $(echo "$TX > $CAP" | bc -l) )); then
+  echo "$(date): TX $TX MiB exceeded cap. Shutting down." | tee -a $LOGFILE
+  curl -s -X POST -H "Content-Type: application/json" -d '{"content":"🚨 URnetwork node #'$NODE_ID' shut down: egress limit reached."}' "$WEBHOOK_URL"
   shutdown -h now
-elif (( \$(echo "\$TX > \$WARN" | bc -l) )); then
-  if [[ ! -f "\$WARN_FILE" ]]; then
-    echo "\$(date): ⚠️ TX \$TX MiB exceeded warning cap." | tee -a \$LOGFILE
-    curl -s -X POST -H "Content-Type: application/json" -d '{"content":"⚠️ URnetwork node #'$NODE_ID' nearing egress limit."}' "\$WEBHOOK_URL"
-    touch "\$WARN_FILE"
+elif (( $(echo "$TX > $WARN" | bc -l) )); then
+  if [[ ! -f "$WARN_FILE" ]]; then
+    echo "$(date): ⚠️ TX $TX MiB exceeded warning cap." | tee -a $LOGFILE
+    curl -s -X POST -H "Content-Type: application/json" -d '{"content":"⚠️ URnetwork node #'$NODE_ID' nearing egress limit."}' "$WEBHOOK_URL"
+    touch "$WARN_FILE"
   fi
 else
-  echo "\$(date): TX \$TX MiB — under warning cap." >> \$LOGFILE
-  rm -f "\$WARN_FILE"
+  echo "$(date): TX $TX MiB — under warning cap." >> $LOGFILE
+  rm -f "$WARN_FILE"
 fi
+
 EOF
 sudo chmod +x /usr/local/bin/shutdown_on_egress.sh
 
