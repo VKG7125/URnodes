@@ -26,59 +26,20 @@ URnodes is a deployment and monitoring toolkit for running [URnetwork](https://w
 > - **Status + warning messages**
 > - **Shutdown alerts**
 
-Clone this repository and run the setup script:
+### 1. Clone this repo
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/URnodes.git
 cd URnodes
+```
+### 2. Run the bootstrap script
+
+```bash
 chmod +x bootstrap_node.sh
 sudo ./bootstrap_node.sh
 ```
+
 You will be prompted to:
-
-Set your node ID (for labeling in messages)
-
-Paste in your Discord webhooks
-
-Choose your egress cap settings (optional for home users)
-
-📌 Important Notes
-🧠 This script uses vnstat to track TX (egress) bandwidth usage for the current month. You can reset it manually for new VMs or local testing.
-
-🕵️ AWS and other cloud providers may throttle traffic or reduce quality of IPs — local hosting is preferred for maximum bandwidth.
-
-🧵 If you are hosting multiple nodes, each can have its own Discord webhook and unique client ID reporting.
-
-💻 Manual Usage
-Check current monthly outbound usage:
-
-bash
-Copy
-Edit
-vnstat -i eth0 -m
-Manually trigger a status webhook:
-
-bash
-Copy
-Edit
-sudo /usr/local/bin/egress_notify.sh
-🧰 Files Included
-File	Purpose
-bootstrap_node.sh	Full installation and setup script
-/usr/local/bin/shutdown_on_egress.sh	Monitors outbound traffic and shuts down if cap is exceeded
-/usr/local/bin/egress_notify.sh	Sends 2-hour interval status messages to Discord
-startup_notify.sh	Sends boot notification and URnetwork client ID
-
-💡 To-Do / Ideas
- Weekly reset support (for non-monthly quotas)
-
- Docker container version
-
- IP reputation checker
-
- Auto webhook configurator for multi-node deployments
-
-🤝 Credits
-Built with ❤️ for the URnetwork community by [YourName].
-
-Contributions welcome — feel free to fork or open issues!
+> - Enter a node number (e.g., 1, 2, etc.)
+> - Paste your Discord webhook URLs
+> - Confirm your TX limit and warning threshold (in MiB)
