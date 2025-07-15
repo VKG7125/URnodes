@@ -1,3 +1,16 @@
+#!/bin/bash
+# bootstrap_node.sh — URnetwork Node Setup with Webhook Monitoring
+
+set -e  # Exit immediately on error
+
+### === USER INPUT ===
+echo "🛠  Starting URnetwork Node setup..."
+read -p "Enter Node ID (e.g. 1, 2): " NODE_ID
+read -p "Enter shutdown Discord webhook URL: " SHUTDOWN_HOOK
+read -p "Enter status Discord webhook URL: " NOTIFY_HOOK
+read -p "Enter shutdown cap in MiB (e.g. 99328 for 97 GiB): " CAP
+read -p "Enter warning cap in MiB (e.g. 94208 for 92 GiB): " WARN
+
 ### === INSTALL DEPENDENCIES ===
 echo "📦 Installing vnstat, curl, bc..."
 sudo apt update && sudo apt install -y vnstat curl bc
