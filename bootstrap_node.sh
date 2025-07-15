@@ -103,18 +103,19 @@ sudo chmod +x /usr/local/bin/shutdown_on_egress.sh
 echo "📡 Writing notify script..."
 sudo tee /usr/local/bin/egress_notify.sh > /dev/null <<EOF
 #!/bin/bash
-IFACE=$(ip route | awk '/default/ {print $5}')
+IFACE=\$(ip route | awk '/default/ { print \$5; exit }')
 WEBHOOK_URL="$NOTIFY_HOOK"
 DATE=\$(date '+%Y-%m-%d %H:%M:%S UTC')
-TX_LINE=\$(vnstat -i \$IFACE -m | awk '/'"\$(date +%Y-%m)"'/')
+TX_LINE=\$(vnstat -i "\$IFACE" -m | awk '/'\$(date +%Y-%m)'/')
 TX_RAW=\$(echo "\$TX_LINE" | awk '{print \$5}')
 UNIT=\$(echo "\$TX_LINE" | awk '{print \$6}')
 
-curl -s -X POST -H "Content-Type: application/json" \
-     -d '{"content":"📡 URnetwork node #$NODE_ID status update\n• Outbound usage: '\$TX_RAW' '\$UNIT'\n• Time: '\$DATE'"}' \
+curl -s -X POST -H "Content-Type: application/json" \\
+     -d "{\\"content\\":\\"📡 URnetwork node #$NODE_ID status update\\\\n• Outbound usage: \$TX_RAW \$UNIT\\\\n• Time: \$DATE\\"}" \\
      "\$WEBHOOK_URL"
 EOF
 sudo chmod +x /usr/local/bin/egress_notify.sh
+sudo /usr/local/bin/egress_notify.sh
 
 ### === STARTUP NOTIFICATION ===
 echo "🚀 Writing startup notify service..."
