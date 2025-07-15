@@ -49,7 +49,16 @@ You will be prompted to:
 ## 🧪 Manual Commands
 
 ### Check outbound (TX) usage for the month:
-``` bash
+```bash
 vnstat -i eth0 -m
 ```
-### Check outbound (TX) usage for the month:
+> Note: vnstat records in Gib not GB
+### Manually trigger the Discord status message:
+```bash
+sudo /usr/local/bin/egress_notify.sh
+```
+
+---
+
+### 📁 Files Overview
+
