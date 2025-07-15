@@ -52,7 +52,7 @@ You will be prompted to:
 ```bash
 vnstat -i eth0 -m
 ```
-> Note: vnstat records in GiB not GB
+> Note: vnstat records in *MiB* **not** *MB*
 ### Manually trigger the Discord status message:
 ```bash
 sudo /usr/local/bin/egress_notify.sh
