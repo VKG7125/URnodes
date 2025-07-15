@@ -134,6 +134,7 @@ else
 fi
 EOF
 sudo chmod +x /usr/local/bin/startup_notify.sh
+sudo /usr/local/bin/startup_notify.sh
 
 sudo tee /etc/systemd/system/startup-notify.service > /dev/null <<EOF
 [Unit]
@@ -156,7 +157,6 @@ echo "⏱  Setting up cron jobs..."
 
 ### === FINALIZE ===
 echo "🚀 Starting vnStat and URnetwork provider..."
-sudo /usr/local/bin/egress_notify.sh
 sudo systemctl start vnstat
 sudo systemctl start urnetwork.service
 
