@@ -38,10 +38,6 @@ else
     exit 1
 fi
 
-# Prompt for provider auth code
-read -p "Enter your URnetwork Auth Code: " AUTH_CODE
-/home/ubuntu/.local/share/urnetwork-provider/bin/urnetwork auth "$AUTH_CODE"
-
 ### === SCRIPTS SETUP ===
 echo "📝 Writing shutdown script..."
 sudo tee /usr/local/bin/shutdown_on_egress.sh > /dev/null <<EOF
