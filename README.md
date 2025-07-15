@@ -85,7 +85,7 @@ sudo /usr/local/bin/egress_notify.sh
   -   Every 2 hours for status pings
 - 🧵 Each node can have its own webhook and unique labeling
 - 🔁 Optional: can be configured to reset traffic weekly
-- 📶 If my machine has unlimited egress bandwidth, I just type an egregiously large number for the **shutdown and warning caps**
+- 📶 If my machine has unlimited egress bandwidth, I just type an egregiously large number that will theoretically never be reached for the **shutdown and warning caps**
 
 ---
 
