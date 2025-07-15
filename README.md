@@ -2,7 +2,7 @@
 
 ## 🛰️ URnetwork Node Deployment + Discord Webhook Monitoring
 
-URnodes is a deployment and monitoring toolkit for running [URnetwork](https://www.urnetwork.io) provider nodes on Ubuntu 22.04 LTS servers. It automates setup, adds **live Discord webhook reporting**, and includes optional **egress traffic enforcement** (with shutdown) for data-capped environments like AWS.
+URnodes is a deployment and monitoring toolkit for running [URnetwork](https://www.ur.io) provider nodes on Ubuntu 22.04 LTS servers. It automates setup, adds **live Discord webhook reporting**, and includes optional **egress traffic enforcement** (with shutdown) for data-capped environments like AWS.
 
 > 📦 Ideal for VPS, cloud, or local VM setups — including support for residential deployments.
 
@@ -41,6 +41,7 @@ sudo ./bootstrap_node.sh
 
 You will be prompted to:
 - Enter a node number (e.g., 1, 2, etc.)
+- URnetwork auth code (*from the website*)
 - Paste your Discord webhook URLs
 - Confirm your TX limit and warning threshold (in MiB)
 
