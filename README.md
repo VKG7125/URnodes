@@ -52,7 +52,7 @@ You will be prompted to:
 ```bash
 vnstat -i eth0 -m
 ```
-> Note: vnstat records in Gib not GB
+> Note: vnstat records in GiB not GB
 ### Manually trigger the Discord status message:
 ```bash
 sudo /usr/local/bin/egress_notify.sh
@@ -62,3 +62,33 @@ sudo /usr/local/bin/egress_notify.sh
 
 ### 📁 Files Overview
 
+| File                                   | Description                                 |
+| -------------------------------------- | ------------------------------------------- |
+| `bootstrap_node.sh`                    | Main setup script | installs everything     |
+| `/usr/local/bin/shutdown_on_egress.sh` | Monitors usage, shuts down on cap breach, and notifies of impending breaching (5 GB away from set cap) / shutdown to Discord |
+| `/usr/local/bin/egress_notify.sh`      | Sends status updates to Discord             |
+| `/usr/local/bin/startup_notify.sh`     | Sends boot and client ID notifications      |
+
+---
+
+### 📌 Notes
+
+- 🧠 Monthly data is tracked by vnstat using TX (egress) traffic on interface eth0
+- ⏱️ Cron jobs handle all regular checks:
+  -   Every 5 min for shutdown checks
+  -   Every 2 hours for status pings
+- 🧵 Each node can have its own webhook and unique labeling
+- 🔁 Optional: can be configured to reset traffic weekly (for residential VMs)
+
+---
+
+### 🏠 Hosting Locally?
+
+No problem! The scripts can also run on local VirtualBox or Docker VMs. 
+If you're not data capped, just ignore the shutdown feature. 
+It’s still useful for logging and monitoring! 
+
+### 🤝 Credits
+
+Created by VKG7125 for the URnetwork community.
+Pull requests, suggestions, and issues are welcome!
