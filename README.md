@@ -29,7 +29,7 @@ URnodes is a deployment and monitoring toolkit for running [URnetwork](https://w
 ### 1. Clone this repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/URnodes.git
+git clone https://github.com/VKG7125/URnodes.git
 cd URnodes
 ```
 ### 2. Run the bootstrap script
