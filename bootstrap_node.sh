@@ -156,8 +156,8 @@ echo "⏱  Setting up cron jobs..."
 
 ### === FINALIZE ===
 echo "🚀 Starting vnStat and URnetwork provider..."
+sudo /usr/local/bin/egress_notify.sh
 sudo systemctl start vnstat
 sudo systemctl start urnetwork.service
-sudo /usr/local/bin/egress_notify.sh
 
 echo "✅ URnetwork Node #$NODE_ID setup complete. Egress monitoring enabled."
