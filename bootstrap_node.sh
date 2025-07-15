@@ -1,0 +1,121 @@
+#!/bin/bash
+# bootstrap_node.sh — URnetwork Node Setup with Webhook Monitoring
+
+set -e  # Exit immediately on error
+
+### === USER INPUT ===
+echo "🛠  Starting URnetwork Node setup..."
+read -p "Enter Node ID (e.g. 1, 2): " NODE_ID
+read -p "Enter shutdown Discord webhook URL: " SHUTDOWN_HOOK
+read -p "Enter status Discord webhook URL: " NOTIFY_HOOK
+read -p "Enter shutdown cap in MiB (e.g. 99328 for 97 GiB): " CAP
+read -p "Enter warning cap in MiB (e.g. 94208 for 92 GiB): " WARN
+
+### === INSTALL DEPENDENCIES ===
+echo "📦 Installing vnstat, curl, bc..."
+sudo apt update && sudo apt install -y vnstat curl bc
+
+### === INSTALL URNETWORK PROVIDER ===
+echo "🌐 Installing URnetwork provider..."
+if ! command -v urnetwork &> /dev/null; then
+  curl -fSsL https://raw.githubusercontent.com/urnetwork/connect/refs/heads/main/scripts/Provider_Install_Linux.sh | sh
+else
+  echo "✅ URnetwork already installed."
+fi
+
+# Prompt for provider auth code
+read -p "Enter your URnetwork Auth Code: " AUTH_CODE
+/home/ubuntu/.local/share/urnetwork-provider/bin/urnetwork auth "$AUTH_CODE"
+
+### === SCRIPTS SETUP ===
+echo "📝 Writing shutdown script..."
+sudo tee /usr/local/bin/shutdown_on_egress.sh > /dev/null <<EOF
+#!/bin/bash
+IFACE="eth0"
+CAP=$CAP
+WARN=$WARN
+LOGFILE="/var/log/egress_shutdown.log"
+WEBHOOK_URL="$SHUTDOWN_HOOK"
+
+TX_LINE=\$(vnstat -i \$IFACE -m | awk '/'"\$(date +%Y-%m)"'/')
+TX_RAW=\$(echo "\$TX_LINE" | awk '{print \$5}')
+UNIT=\$(echo "\$TX_LINE" | awk '{print \$6}')
+if [[ "\$UNIT" == "GiB" ]]; then TX=\$(echo "\$TX_RAW * 1024" | bc); else TX=\$TX_RAW; fi
+
+WARN_FILE="/tmp/urnode_warn_sent"
+if (( \$(echo "\$TX > \$CAP" | bc -l) )); then
+  echo "\$(date): TX \$TX MiB exceeded cap. Shutting down." | tee -a \$LOGFILE
+  curl -s -X POST -H "Content-Type: application/json" -d '{"content":"🚨 URnetwork node #'$NODE_ID' shut down: egress limit reached."}' "\$WEBHOOK_URL"
+  shutdown -h now
+elif (( \$(echo "\$TX > \$WARN" | bc -l) )); then
+  if [[ ! -f "\$WARN_FILE" ]]; then
+    echo "\$(date): ⚠️ TX \$TX MiB exceeded warning cap." | tee -a \$LOGFILE
+    curl -s -X POST -H "Content-Type: application/json" -d '{"content":"⚠️ URnetwork node #'$NODE_ID' nearing egress limit."}' "\$WEBHOOK_URL"
+    touch "\$WARN_FILE"
+  fi
+else
+  echo "\$(date): TX \$TX MiB — under warning cap." >> \$LOGFILE
+  rm -f "\$WARN_FILE"
+fi
+EOF
+sudo chmod +x /usr/local/bin/shutdown_on_egress.sh
+
+### === NOTIFY SCRIPT ===
+echo "📡 Writing notify script..."
+sudo tee /usr/local/bin/egress_notify.sh > /dev/null <<EOF
+#!/bin/bash
+IFACE="eth0"
+WEBHOOK_URL="$NOTIFY_HOOK"
+DATE=\$(date '+%Y-%m-%d %H:%M:%S UTC')
+TX_LINE=\$(vnstat -i \$IFACE -m | awk '/'"\$(date +%Y-%m)"'/')
+TX_RAW=\$(echo "\$TX_LINE" | awk '{print \$5}')
+UNIT=\$(echo "\$TX_LINE" | awk '{print \$6}')
+
+curl -s -X POST -H "Content-Type: application/json" \
+     -d '{"content":"📡 URnetwork node #'$NODE_ID' status update\n• Outbound usage: '\$TX_RAW' '\$UNIT'\n• Time: '\$DATE'"}' \
+     "\$WEBHOOK_URL"
+EOF
+sudo chmod +x /usr/local/bin/egress_notify.sh
+
+### === STARTUP NOTIFICATION ===
+echo "🚀 Writing startup notify service..."
+sudo tee /usr/local/bin/startup_notify.sh > /dev/null <<EOF
+#!/bin/bash
+WEBHOOK_URL="$SHUTDOWN_HOOK"
+curl -s -X POST -H "Content-Type: application/json" \
+     -d '{"content":"✅ URnetwork node #'$NODE_ID' started up!"}' "\$WEBHOOK_URL"
+sleep 10
+curl -s -X POST -H "Content-Type: application/json" \
+     -d '{"content":"> Client ID:"}' "\$WEBHOOK_URL"
+CLIENT_ID=\$(journalctl -u urnetwork -n 20 --no-pager | grep -oP 'client_id:\s*\K[\w-]+')
+if [[ -n "\$CLIENT_ID" ]]; then
+  curl -s -X POST -H "Content-Type: application/json" -d "{\"content\":\"\$CLIENT_ID\"}" "\$WEBHOOK_URL"
+else
+  curl -s -X POST -H "Content-Type: application/json" -d '{"content":"Client ID not found in logs."}' "\$WEBHOOK_URL"
+fi
+EOF
+sudo chmod +x /usr/local/bin/startup_notify.sh
+
+sudo tee /etc/systemd/system/startup-notify.service > /dev/null <<EOF
+[Unit]
+Description=Send Discord startup notification with URnetwork client ID
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/startup_notify.sh
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl enable startup-notify.service
+
+### === CRON JOBS ===
+echo "⏱  Setting up cron jobs..."
+( sudo crontab -l 2>/dev/null; echo "*/5 * * * * /usr/local/bin/shutdown_on_egress.sh"; echo "0 */2 * * * /usr/local/bin/egress_notify.sh" ) | sudo crontab -u root -
+
+### === FINALIZE ===
+sudo systemctl start vnstat
+sudo systemctl start startup-notify.service
+
+echo "✅ URnetwork Node #$NODE_ID setup complete. Egress monitoring enabled."
