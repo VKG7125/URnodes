@@ -60,7 +60,7 @@ sudo /usr/local/bin/egress_notify.sh
 
 ---
 
-### 📁 Files Overview
+## 📁 Files Overview
 
 | File                                   | Description                                 |
 | -------------------------------------- | ------------------------------------------- |
@@ -71,7 +71,7 @@ sudo /usr/local/bin/egress_notify.sh
 
 ---
 
-### 📌 Notes
+## 📌 Notes
 
 - 🧠 Monthly data is tracked by vnstat using TX (egress) traffic on interface eth0
 - ⏱️ Cron jobs handle all regular checks:
@@ -82,7 +82,7 @@ sudo /usr/local/bin/egress_notify.sh
 
 ---
 
-### 🏠 Hosting Locally?
+## 🏠 Hosting Locally?
 
 No problem! The scripts can also run on local VirtualBox or Docker VMs. 
 If you're not data capped, just ignore the shutdown feature. 
@@ -90,7 +90,7 @@ It’s still useful for logging and monitoring!
 
 ---
 
-### 🤝 Credits
+## 🤝 Credits
 
 Created by **VKG7125** for the URnetwork community.
 Pull requests, suggestions, and issues are welcome!
