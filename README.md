@@ -40,6 +40,6 @@ sudo ./bootstrap_node.sh
 ```
 
 You will be prompted to:
-> - Enter a node number (e.g., 1, 2, etc.)
-> - Paste your Discord webhook URLs
-> - Confirm your TX limit and warning threshold (in MiB)
+- Enter a node number (e.g., 1, 2, etc.)
+- Paste your Discord webhook URLs
+- Confirm your TX limit and warning threshold (in MiB)
