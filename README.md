@@ -41,18 +41,23 @@ sudo ./bootstrap_node.sh
 
 You will be prompted to:
 - Enter a node number (e.g., 1, 2, etc.)
-- URnetwork auth code (*from the website*)
 - Paste your Discord webhook URLs
 - Confirm your TX limit and warning threshold (in MiB)
+- Provide URnetwork auth code (*from the website*)
 
 ---
 
 ## 🧪 Manual Commands
 
-### Check outbound (TX) usage for the month:
+### Determine your network interface and check outbound (TX) usage for the month:
 ```bash
-vnstat -i eth0 -m
+# Auto-detect your primary interface (e.g., eth0, ens3, ens1)
+IFACE=$(ip route | awk '/default/ {print $5; exit}')
+
+# Display monthly stats for that interface
+vnstat -i "$IFACE" -m
 ```
+
 > Note: vnstat records in *MiB* **not** *MB*
 ### Manually trigger the Discord status message:
 ```bash
@@ -66,7 +71,7 @@ sudo /usr/local/bin/egress_notify.sh
 | File                                   | Description                                 |
 | -------------------------------------- | ------------------------------------------- |
 | `bootstrap_node.sh`                    | Main setup script | installs everything     |
-| `/usr/local/bin/shutdown_on_egress.sh` | Monitors usage, shuts down on cap breach, and notifies of impending breaching (5 GB away from set cap) / shutdown to Discord |
+| `/usr/local/bin/shutdown_on_egress.sh` | Monitors usage, shuts down on cap breach, and notifies of impending breaching (e.g., 5 GB away from set cap) / shutdown to Discord |
 | `/usr/local/bin/egress_notify.sh`      | Sends status updates to Discord             |
 | `/usr/local/bin/startup_notify.sh`     | Sends boot and client ID notifications      |
 
@@ -74,12 +79,13 @@ sudo /usr/local/bin/egress_notify.sh
 
 ## 📌 Notes
 
-- 🧠 Monthly data is tracked by vnstat using TX (egress) traffic on interface eth0
+- 🧠 Monthly data is tracked by vnstat using TX (egress) traffic on your default network interface (auto‑detected via the scripts)
 - ⏱️ Cron jobs handle all regular checks:
   -   Every 5 min for shutdown checks
   -   Every 2 hours for status pings
 - 🧵 Each node can have its own webhook and unique labeling
-- 🔁 Optional: can be configured to reset traffic weekly (for residential VMs)
+- 🔁 Optional: can be configured to reset traffic weekly
+- 📶 If my machine has unlimited egress bandwidth, I just type an egregiously large number for the **shutdown and warning caps**
 
 ---
 
