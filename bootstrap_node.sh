@@ -19,13 +19,23 @@ sudo apt update && sudo apt install -y vnstat curl bc
 echo "🌐 Installing URnetwork provider..."
 if ! command -v urnetwork &> /dev/null; then
     # Install using official script
-    curl -fSsL https://raw.githubusercontent.com/urnetwork/connect/refs/heads/main/scripts/Provider_Install_Linux.sh | sh || true
-    # Fallback: ensure global service exists and is enabled
-    echo "⚙️ Ensuring URnetwork systemd service is enabled..."
+    curl -fSsL https://raw.githubusercontent.com/urnetwork/connect/refs/heads/main/scripts/Provider_Install_Linux.sh | bash || true
+    echo "⚙️ Waiting for URnetwork binary to become available..."
+    sleep 10
     sudo systemctl daemon-reload || true
     sudo systemctl enable --now urnetwork.service || true
 else
     echo "✅ URnetwork already installed."
+fi
+
+# Prompt for provider auth code
+echo "🔑 Authenticating URnetwork provider..."
+read -p "Enter your URnetwork Auth Code: " AUTH_CODE
+if command -v urnetwork &> /dev/null; then
+    urnetwork auth "$AUTH_CODE"
+else
+    echo "❌ urnetwork binary not found—installation may have failed." >&2
+    exit 1
 fi
 
 # Prompt for provider auth code
