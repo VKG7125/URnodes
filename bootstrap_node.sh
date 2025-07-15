@@ -22,21 +22,49 @@ if ! command -v urnetwork &> /dev/null; then
     echo "⚙️ Waiting for URnetwork binary to become available..."
     sleep 10
 
-    # Attempt to manually run the binary if PATH-based lookup fails
     UR_BIN="/root/.local/share/urnetwork-provider/bin/urnetwork"
     if [[ -x "$UR_BIN" ]]; then
         sudo ln -sf "$UR_BIN" /usr/local/bin/urnetwork
+        sudo chmod +x /usr/local/bin/urnetwork
         echo "✅ urnetwork binary found and linked."
+
+        # Create systemd service unit
+        echo "⚙️ Creating urnetwork.service unit..."
+        sudo tee /etc/systemd/system/urnetwork.service > /dev/null <<EOF
+[Unit]
+Description=URnetwork Provider
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/urnetwork provide
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        sudo systemctl daemon-reload
+        sudo systemctl enable --now urnetwork.service
     else
         echo "❌ urnetwork binary not found at expected path: $UR_BIN" >&2
         exit 1
     fi
+else
+    echo "✅ URnetwork already installed."
 fi
 
 # Prompt for provider auth code
 echo "🔑 Authenticating URnetwork provider..."
 read -p "Enter your URnetwork Auth Code: " AUTH_CODE
-urnetwork auth "$AUTH_CODE"
+if command -v urnetwork &> /dev/null; then
+    urnetwork auth "$AUTH_CODE"
+elif [[ -x "/root/.local/share/urnetwork-provider/bin/urnetwork" ]]; then
+    /root/.local/share/urnetwork-provider/bin/urnetwork auth "$AUTH_CODE"
+else
+    echo "❌ urnetwork binary not found—installation may have failed." >&2
+    exit 1
+fi
 
 ### === SCRIPTS SETUP ===
 echo "📝 Writing shutdown script..."
@@ -69,7 +97,6 @@ else
   rm -f "\$WARN_FILE"
 fi
 EOF
-
 sudo chmod +x /usr/local/bin/shutdown_on_egress.sh
 
 ### === NOTIFY SCRIPT ===
@@ -87,7 +114,6 @@ curl -s -X POST -H "Content-Type: application/json" \
      -d '{"content":"📡 URnetwork node #$NODE_ID status update\n• Outbound usage: '\$TX_RAW' '\$UNIT'\n• Time: '\$DATE'"}' \
      "\$WEBHOOK_URL"
 EOF
-
 sudo chmod +x /usr/local/bin/egress_notify.sh
 
 ### === STARTUP NOTIFICATION ===
@@ -100,20 +126,19 @@ curl -s -X POST -H "Content-Type: application/json" \
 sleep 10
 curl -s -X POST -H "Content-Type: application/json" \
      -d '{"content":"> Client ID:"}' "\$WEBHOOK_URL"
-CLIENT_ID=\$(journalctl -u urnetwork -n 20 --no-pager | grep -oP 'client_id:\\s*\\K[\\w-]+')
+CLIENT_ID=\$(journalctl -u urnetwork.service -n 20 --no-pager | grep -oP 'client_id:\s*\K[\w-]+')
 if [[ -n "\$CLIENT_ID" ]]; then
   curl -s -X POST -H "Content-Type: application/json" -d "{\"content\":\"\$CLIENT_ID\"}" "\$WEBHOOK_URL"
 else
   curl -s -X POST -H "Content-Type: application/json" -d '{"content":"Client ID not found in logs."}' "\$WEBHOOK_URL"
 fi
 EOF
-
 sudo chmod +x /usr/local/bin/startup_notify.sh
 
 sudo tee /etc/systemd/system/startup-notify.service > /dev/null <<EOF
 [Unit]
 Description=Send Discord startup notification with URnetwork client ID
-After=network-online.target
+After=urnetwork.service network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/startup_notify.sh
@@ -122,7 +147,7 @@ Type=oneshot
 [Install]
 WantedBy=multi-user.target
 EOF
-
+sudo systemctl daemon-reload
 sudo systemctl enable startup-notify.service
 
 ### === CRON JOBS ===
@@ -130,7 +155,8 @@ echo "⏱  Setting up cron jobs..."
 ( sudo crontab -l 2>/dev/null; echo "*/5 * * * * /usr/local/bin/shutdown_on_egress.sh"; echo "0 */2 * * * /usr/local/bin/egress_notify.sh" ) | sudo crontab -u root -
 
 ### === FINALIZE ===
+echo "🚀 Starting vnStat and URnetwork provider..."
 sudo systemctl start vnstat
-sudo systemctl start startup-notify.service
+sudo systemctl start urnetwork.service
 
 echo "✅ URnetwork Node #$NODE_ID setup complete. Egress monitoring enabled."
