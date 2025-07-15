@@ -25,23 +25,18 @@ if ! command -v urnetwork &> /dev/null; then
     # Attempt to manually run the binary if PATH-based lookup fails
     UR_BIN="/root/.local/share/urnetwork-provider/bin/urnetwork"
     if [[ -x "$UR_BIN" ]]; then
-        ln -sf "$UR_BIN" /usr/local/bin/urnetwork
+        sudo ln -sf "$UR_BIN" /usr/local/bin/urnetwork
         echo "✅ urnetwork binary found and linked."
     else
         echo "❌ urnetwork binary not found at expected path: $UR_BIN" >&2
+        exit 1
     fi
+fi
 
 # Prompt for provider auth code
 echo "🔑 Authenticating URnetwork provider..."
 read -p "Enter your URnetwork Auth Code: " AUTH_CODE
-if command -v urnetwork &> /dev/null; then
-    urnetwork auth "$AUTH_CODE"
-elif [[ -x "/root/.local/share/urnetwork-provider/bin/urnetwork" ]]; then
-    /root/.local/share/urnetwork-provider/bin/urnetwork auth "$AUTH_CODE"
-else
-    echo "❌ urnetwork binary not found—installation may have failed." >&2
-    exit 1
-fi
+urnetwork auth "$AUTH_CODE"
 
 ### === SCRIPTS SETUP ===
 echo "📝 Writing shutdown script..."
@@ -59,22 +54,22 @@ UNIT=\$(echo "\$TX_LINE" | awk '{print \$6}')
 if [[ "\$UNIT" == "GiB" ]]; then TX=\$(echo "\$TX_RAW * 1024" | bc); else TX=\$TX_RAW; fi
 
 WARN_FILE="/tmp/urnode_warn_sent"
-if (( $(echo "$TX > $CAP" | bc -l) )); then
-  echo "$(date): TX $TX MiB exceeded cap. Shutting down." | tee -a $LOGFILE
-  curl -s -X POST -H "Content-Type: application/json" -d '{"content":"🚨 URnetwork node #'$NODE_ID' shut down: egress limit reached."}' "$WEBHOOK_URL"
+if (( \$(echo "\$TX > \$CAP" | bc -l) )); then
+  echo "\$(date): TX \$TX MiB exceeded cap. Shutting down." | tee -a \$LOGFILE
+  curl -s -X POST -H "Content-Type: application/json" -d '{"content":"🚨 URnetwork node #$NODE_ID shut down: egress limit reached."}' "\$WEBHOOK_URL"
   shutdown -h now
-elif (( $(echo "$TX > $WARN" | bc -l) )); then
-  if [[ ! -f "$WARN_FILE" ]]; then
-    echo "$(date): ⚠️ TX $TX MiB exceeded warning cap." | tee -a $LOGFILE
-    curl -s -X POST -H "Content-Type: application/json" -d '{"content":"⚠️ URnetwork node #'$NODE_ID' nearing egress limit."}' "$WEBHOOK_URL"
-    touch "$WARN_FILE"
+elif (( \$(echo "\$TX > \$WARN" | bc -l) )); then
+  if [[ ! -f "\$WARN_FILE" ]]; then
+    echo "\$(date): ⚠️ TX \$TX MiB exceeded warning cap." | tee -a \$LOGFILE
+    curl -s -X POST -H "Content-Type: application/json" -d '{"content":"⚠️ URnetwork node #$NODE_ID nearing egress limit."}' "\$WEBHOOK_URL"
+    touch "\$WARN_FILE"
   fi
 else
-  echo "$(date): TX $TX MiB — under warning cap." >> $LOGFILE
-  rm -f "$WARN_FILE"
+  echo "\$(date): TX \$TX MiB — under warning cap." >> \$LOGFILE
+  rm -f "\$WARN_FILE"
 fi
-
 EOF
+
 sudo chmod +x /usr/local/bin/shutdown_on_egress.sh
 
 ### === NOTIFY SCRIPT ===
@@ -89,9 +84,10 @@ TX_RAW=\$(echo "\$TX_LINE" | awk '{print \$5}')
 UNIT=\$(echo "\$TX_LINE" | awk '{print \$6}')
 
 curl -s -X POST -H "Content-Type: application/json" \
-     -d '{"content":"📡 URnetwork node #'$NODE_ID' status update\n• Outbound usage: '\$TX_RAW' '\$UNIT'\n• Time: '\$DATE'"}' \
+     -d '{"content":"📡 URnetwork node #$NODE_ID status update\n• Outbound usage: '\$TX_RAW' '\$UNIT'\n• Time: '\$DATE'"}' \
      "\$WEBHOOK_URL"
 EOF
+
 sudo chmod +x /usr/local/bin/egress_notify.sh
 
 ### === STARTUP NOTIFICATION ===
@@ -100,17 +96,18 @@ sudo tee /usr/local/bin/startup_notify.sh > /dev/null <<EOF
 #!/bin/bash
 WEBHOOK_URL="$SHUTDOWN_HOOK"
 curl -s -X POST -H "Content-Type: application/json" \
-     -d '{"content":"✅ URnetwork node #'$NODE_ID' started up!"}' "\$WEBHOOK_URL"
+     -d '{"content":"✅ URnetwork node #$NODE_ID started up!"}' "\$WEBHOOK_URL"
 sleep 10
 curl -s -X POST -H "Content-Type: application/json" \
      -d '{"content":"> Client ID:"}' "\$WEBHOOK_URL"
-CLIENT_ID=\$(journalctl -u urnetwork -n 20 --no-pager | grep -oP 'client_id:\s*\K[\w-]+')
+CLIENT_ID=\$(journalctl -u urnetwork -n 20 --no-pager | grep -oP 'client_id:\\s*\\K[\\w-]+')
 if [[ -n "\$CLIENT_ID" ]]; then
   curl -s -X POST -H "Content-Type: application/json" -d "{\"content\":\"\$CLIENT_ID\"}" "\$WEBHOOK_URL"
 else
   curl -s -X POST -H "Content-Type: application/json" -d '{"content":"Client ID not found in logs."}' "\$WEBHOOK_URL"
 fi
 EOF
+
 sudo chmod +x /usr/local/bin/startup_notify.sh
 
 sudo tee /etc/systemd/system/startup-notify.service > /dev/null <<EOF
@@ -125,6 +122,7 @@ Type=oneshot
 [Install]
 WantedBy=multi-user.target
 EOF
+
 sudo systemctl enable startup-notify.service
 
 ### === CRON JOBS ===
