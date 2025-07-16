@@ -126,7 +126,7 @@ curl -s -X POST -H "Content-Type: application/json" \
      -d '{"content":"✅ URnetwork node #$NODE_ID started up!"}' "\$WEBHOOK_URL"
 sleep 10
 curl -s -X POST -H "Content-Type: application/json" \
-     -d '{"content":"> Client ID:"}' "\$WEBHOOK_URL"
+     -d '{"content":"> **Client ID:**"}' "\$WEBHOOK_URL"
 CLIENT_ID=\$(journalctl -u urnetwork.service -n 20 --no-pager | grep -oP 'client_id:\s*\K[\w-]+')
 if [[ -n "\$CLIENT_ID" ]]; then
   curl -s -X POST -H "Content-Type: application/json" -d "{\"content\":\"\$CLIENT_ID\"}" "\$WEBHOOK_URL"
