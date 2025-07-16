@@ -111,7 +111,7 @@ TX_RAW=\$(echo "\$TX_LINE" | awk '{print \$5}')
 UNIT=\$(echo "\$TX_LINE" | awk '{print \$6}')
 
 curl -s -X POST -H "Content-Type: application/json" \\
-     -d "{\\"content\\":\\"📡 URnetwork node #$NODE_ID status update\\\\n• Outbound usage: \$TX_RAW \$UNIT\\\\n• Time: \$DATE\\"}" \\
+     -d "{\\"content\\":\\"📡 **URnetwork node #$NODE_ID status update**\\\\n• Outbound usage: \$TX_RAW \$UNIT\\\\n• Time: \$DATE\\"}" \\
      "\$WEBHOOK_URL"
 EOF
 sudo chmod +x /usr/local/bin/egress_notify.sh
