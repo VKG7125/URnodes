@@ -91,8 +91,8 @@ sudo /usr/local/bin/egress_notify.sh
 
 ## 🏠 Hosting Locally?
 
-No problem! The scripts can also run on local VirtualBox or Docker VMs. 
-If you're not data capped, just ignore the shutdown feature. 
+No problem! The scripts can also run on local VirtualBox or Docker VMs. Multipass was used in testing and developing this script.
+If you're not data capped, just ignore the shutdown feature. (*Last Note*)
 It’s still useful for logging and monitoring! 
 
 ---
