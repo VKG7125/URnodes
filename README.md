@@ -85,6 +85,7 @@ sudo /usr/local/bin/egress_notify.sh
   -   Every 2 hours for status pings
 - 🧵 Each node can have its own webhook and unique labeling
 - 🔁 Optional: can be configured to reset traffic weekly
+- ➕ Considering adding the ability to opt out of any of the three scripts during setup. 
 - 📶 If my machine has unlimited egress bandwidth, I just type an egregiously large number that will theoretically never be reached for the **shutdown and warning caps**
 
 ---
@@ -101,3 +102,5 @@ It’s still useful for logging and monitoring!
 
 Created by **VKG7125** for the URnetwork community.
 Pull requests, suggestions, and issues are welcome!
+
+You can also [DM me on Discord](https://discordapp.com/users/849096985880559616)!
