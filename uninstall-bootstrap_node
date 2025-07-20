@@ -1,0 +1,37 @@
+#!/bin/bash
+# uninstall_node.sh — Cleanly remove URnodes scripts, services, and cron jobs
+
+set -e
+
+echo "⚠️  This will completely remove URnodes components from your system. Proceed? (y/N)"
+read -r CONFIRM
+if [[ "$CONFIRM" != "y" ]]; then
+  echo "Aborted. No changes made."
+  exit 0
+fi
+
+# Stop and disable URnetwork provider service
+if sudo systemctl is-active --quiet urnetwork.service; then
+  sudo systemctl stop urnetwork.service
+fi
+sudo systemctl disable urnetwork.service || true
+sudo rm -f /etc/systemd/system/urnetwork.service
+
+# Stop and disable startup notifier
+if sudo systemctl is-active --quiet startup-notify.service; then
+  sudo systemctl stop startup-notify.service
+fi
+sudo systemctl disable startup-notify.service || true
+sudo rm -f /etc/systemd/system/startup-notify.service
+
+# Remove monitoring scripts
+sudo rm -f /usr/local/bin/shutdown_on_egress.sh
+sudo rm -f /usr/local/bin/egress_notify.sh
+sudo rm -f /usr/local/bin/startup_notify.sh
+
+# Remove cron jobs tagged #URNODES
+sudo crontab -u root -l 2>/dev/null \
+  | grep -v '#URNODES' \
+  | sudo crontab -u root -
+
+echo "✅ URnodes uninstall complete."
