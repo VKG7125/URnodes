@@ -1,6 +1,6 @@
 # URnodes
 
-![Social Preview](https://raw.githubusercontent.com/VKG7125/URnodes/refs/heads/main/urnodebanner.jpeg)
+![Social Preview](https://raw.githubusercontent.com/VKG7125/URnodes/refs/heads/main/urnodespeakbannerfinal.jpg)
 
 ## 🛰️ URnetwork Node Deployment + Discord Webhook Monitoring
 
