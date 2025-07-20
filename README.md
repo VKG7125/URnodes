@@ -49,6 +49,17 @@ You will be prompted to:
 
 ---
 
+## 🧹 Uninstallation
+
+If you ever need to remove URnodes completely:
+
+1. Copy `uninstall_node.sh` to your VM and make it executable:
+   ```bash
+   chmod +x uninstall_node.sh
+   sudo ./uninstall_node.sh
+
+---
+
 ## 🧪 Manual Commands
 
 ### Determine your network interface and check outbound (TX) usage for the month:
