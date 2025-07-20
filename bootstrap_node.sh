@@ -154,8 +154,8 @@ sudo systemctl enable startup-notify.service
 ### === CRON JOBS ===
 echo "⏱  Setting up cron jobs..."
 sudo crontab -u root -l 2>/dev/null | grep -v 'egress_notify\|shutdown_on_egress' > /tmp/current_cron || true
-echo "*/5 * * * * /usr/local/bin/shutdown_on_egress.sh >> /var/log/shutdown_cron.log 2>&1" >> /tmp/current_cron
-echo "0 */2 * * * /usr/local/bin/egress_notify.sh >> /var/log/notify_cron.log 2>&1" >> /tmp/current_cron
+echo "*/5 * * * * /usr/local/bin/shutdown_on_egress.sh >> /var/log/shutdown_cron.log 2>&1 #URNODES" >> /tmp/current_cron
+echo "0 */2 * * * /usr/local/bin/egress_notify.sh >> /var/log/notify_cron.log 2>&1 #URNODES" >> /tmp/current_cron
 sudo crontab -u root /tmp/current_cron
 rm /tmp/current_cron
 
