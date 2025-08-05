@@ -1,13 +1,6 @@
-<table>
-  <tr>
-    <td>
-      <img src="https://raw.githubusercontent.com/VKG7125/URnodes/refs/heads/main/URnodesLogo.png" alt="URnodes Logo" height="80"/>
-    </td>
-    <td>
-      <h1>URnodes</h1>
-    </td>
-  </tr>
-</table>
+<img src="https://raw.githubusercontent.com/VKG7125/URnodes/refs/heads/main/URnodesReadmelogotitle.png" alt="Social Preview" height="100"/>
+
+---
 
 ![Social Preview](https://raw.githubusercontent.com/VKG7125/URnodes/refs/heads/main/urnodespeakbannerfinal.jpg)
 
